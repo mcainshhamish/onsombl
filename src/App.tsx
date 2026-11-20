@@ -3,13 +3,11 @@ import { PERSONAS } from './data';
 import Conversation from './components/Conversation';
 import { DataError, loadArtistData, type ArtistData } from './artistData';
 import Sidebar, { type View } from './components/Sidebar';
-import ProjectBoard from './components/ProjectBoard';
 import Analytics from './components/Analytics';
 import Modal from './components/Modal';
 import Guide from './components/Guide';
 import EarlyAccess from './components/EarlyAccess';
-import type { Msg, ChatAction } from './components/Conversation';
-import type { Task, Status } from './data';
+import type { Msg } from './components/Conversation';
 
 type Load = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: ArtistData; id: string };
 
@@ -19,7 +17,7 @@ export default function App() {
   const [accountsOpen, setAccountsOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [chats, setChats] = useState<Record<string, Msg[]>>({});
-  const [access, setAccess] = useState(false);
+  const [access, setAccess] = useState<string | null>(null);
   const [autoAsk, setAutoAsk] = useState<{ q: string; n: number } | null>(null);
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [load, setLoad] = useState<Load>({ status: 'loading' });
@@ -60,37 +58,6 @@ export default function App() {
     };
   }, [persona.id]);
 
-  const taskKey = `ensemble.tasks.v2.${personaId}`;
-  function readTasks(): Task[] {
-    try {
-      const raw = localStorage.getItem(taskKey);
-      if (raw) return JSON.parse(raw) as Task[];
-    } catch {
-      /* fall through to the CSV tasks */
-    }
-    return load.status === 'ready' ? load.data.tasks : [];
-  }
-  function applyActions(actions: ChatAction[]) {
-    let tasks = readTasks();
-    const assignee = persona.name.startsWith('The ') ? persona.name.slice(4) : persona.name.split(' ')[0];
-    for (const a of actions) {
-      if (a.type === 'add_task') {
-        let n = tasks.length + 1;
-        while (tasks.some((t) => t.id === `t${n}`)) n++;
-        const t: Task = { id: `t${n}`, title: a.title, category: a.category, note: a.note, assignee, due: a.due, status: 'todo' };
-        if (a.priority === 'High') t.priority = 'High';
-        tasks = [...tasks, t];
-      } else if (a.type === 'update_task_status') {
-        tasks = tasks.map((t) => (t.id === a.id ? { ...t, status: a.status as Status } : t));
-      }
-    }
-    try {
-      localStorage.setItem(taskKey, JSON.stringify(tasks));
-    } catch {
-      /* storage unavailable */
-    }
-  }
-
   const open = () => setAccountsOpen(true);
   const data = load.status === 'ready' ? load.data : null;
   const suggestions: string[] = data
@@ -101,7 +68,6 @@ export default function App() {
         'How are my fans reacting to my latest release?',
         'Which platform should I focus on?',
         `Which age group should my next campaign target?`,
-        'Add a task to pitch playlist curators',
       ]
     : [];
   const platformCount = data ? data.accounts.filter((a) => connected[a.name] ?? a.connected).length : 0;
@@ -118,7 +84,7 @@ export default function App() {
         persona={persona}
         onPersona={setPersonaId}
         onAddAccounts={open}
-        onSignup={() => setAccess(true)}
+        onSignup={() => setAccess('signup')}
         platformCount={platformCount}
         documentCount={data?.overview.indexed_documents ?? '–'}
       />
@@ -130,7 +96,7 @@ export default function App() {
             <span />
             <span />
           </button>
-          <button className="btn-solid btn-small" onClick={() => setAccess(true)}>
+          <button className="btn-solid btn-small" onClick={() => setAccess('signup')}>
             Sign up for free
           </button>
         </header>
@@ -144,8 +110,7 @@ export default function App() {
             </div>
           </div>
         )}
-        {data && view === 'projects' && <ProjectBoard key={persona.id} data={data} personaId={persona.id} onAddAccounts={open} />}
-        {data && view === 'analytics' && <Analytics data={data} name={persona.name} connected={connected} onAddAccounts={open} />}
+        {data && view === 'analytics' && <Analytics data={data} name={persona.name} connected={connected} onAddAccounts={open} onAsk={ask} onSignup={setAccess} />}
         {data && view === 'guide' && <Guide data={data} name={persona.name} onAsk={ask} />}
         {data && view === 'conversation' && <Conversation
             key={persona.id}
@@ -154,13 +119,10 @@ export default function App() {
             msgs={chats[persona.id] ?? []}
             onMsgs={(m) => setChats((c) => ({ ...c, [persona.id]: m }))}
             autoAsk={autoAsk}
-            getTasks={readTasks}
-            onActions={applyActions}
-            onOpenBoard={() => setView('projects')}
           />}
       </main>
 
-      {access && <EarlyAccess onClose={() => setAccess(false)} />}
+      {access && <EarlyAccess source={access} onClose={() => setAccess(null)} />}
 
       {accountsOpen && data && (
         <Modal title="Add your music accounts" onClose={() => setAccountsOpen(false)}>

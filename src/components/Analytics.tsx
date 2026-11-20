@@ -8,6 +8,8 @@ interface Props {
   name: string;
   connected: Record<string, boolean>;
   onAddAccounts: () => void;
+  onAsk: (q: string) => void;
+  onSignup: (source: string) => void;
 }
 
 const pct1 = (n: number) => `${n.toFixed(1)}%`;
@@ -44,7 +46,7 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
   );
 }
 
-export default function Analytics({ data, name, connected, onAddAccounts }: Props) {
+export default function Analytics({ data, name, connected, onAddAccounts, onAsk, onSignup }: Props) {
   const o = data.overview;
   const [range, setRange] = useState('Last 28 days');
   const days = RANGES.find((r) => r.label === range)?.days ?? 28;
@@ -261,7 +263,14 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
               <div key={s.title}>
                 <div className="row-title">{s.title}</div>
                 <p>{s.detail}</p>
-                <button className="link-btn">Ask onsombl about this →</button>
+                <div className="step-actions">
+                  <button className="link-btn" onClick={() => onAsk(`Tell me more about this: ${s.title}. ${s.detail}`)}>
+                    Ask onsombl about this →
+                  </button>
+                  <button className="link-btn" onClick={() => onSignup('notion')}>
+                    Send to Notion
+                  </button>
+                </div>
               </div>
             ))}
           </div>

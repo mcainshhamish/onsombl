@@ -1893,3 +1893,4 @@ button {
 .lolli-dot { position: absolute; right: -8px; top: -7px; width: 16px; height: 16px; border-radius: 50%; background: #2a78d6; border: 2px solid #fff; box-sizing: border-box; box-shadow: 0 0 0 1px #cdd8ee; }
 .lolli-row:hover .lolli-dot { transform: scale(1.12); }
 .avg-note { margin: 16px 0 0; font-size: 12px; color: var(--muted); }
+.step-actions { display: flex; flex-wrap: wrap; gap: 4px 18px; }
