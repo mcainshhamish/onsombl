@@ -48,3 +48,6 @@ tasks.csv            id,title,category,note,assignee,due,status,priority
 - Without the key, the chat shows "The AI chat isn't switched on yet".
 - The function only runs if the deploy includes the netlify/functions folder (deploy from source or with the Netlify CLI, not a plain dist upload).
 
+
+## Note
+This repository is public. Never commit API keys or secrets here; keep them in Netlify environment variables.
