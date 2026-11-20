@@ -47,3 +47,4 @@ tasks.csv            id,title,category,note,assignee,due,status,priority
 - Optional variables: CHAT_PER_VISITOR_DAILY (default 20), CHAT_GLOBAL_DAILY (default 400), CHAT_MODEL (default claude-haiku-5-5).
 - Without the key, the chat shows "The AI chat isn't switched on yet".
 - The function only runs if the deploy includes the netlify/functions folder (deploy from source or with the Netlify CLI, not a plain dist upload).
+
