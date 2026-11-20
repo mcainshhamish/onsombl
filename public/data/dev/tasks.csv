@@ -1,0 +1,10 @@
+id,title,category,note,assignee,due,status,priority
+t1,Launch London audience test,Audience,From audience insight · Source [2],Maya,2026-11-24,todo,High
+t2,Cut three live-session clips,Creative,Linked: Campaign creative brief,Leah,2026-11-25,todo,
+t3,Build a UK playlist shortlist,Outreach,Linked: Outreach tracker,Jonah,2026-11-27,todo,
+t4,Edit the Afterglow visualizer,Creative,Linked: Visual direction brief,Leah,2026-11-23,progress,
+t5,Prepare the fan newsletter,Marketing,Linked: Campaign creative brief,Maya,2026-11-24,progress,
+t6,Pitch independent curators,Outreach,Linked: Outreach tracker,Jonah,2026-11-26,progress,
+t7,Approve the campaign plan,Strategy,Linked: Release campaign plan,Maya,2026-11-18,done,
+t8,Review catalog performance,Data,Linked: Catalog performance,Maya,2026-11-19,done,
+t9,Confirm the release assets,Operations,Linked: Visual direction brief,Leah,2026-11-20,done,
