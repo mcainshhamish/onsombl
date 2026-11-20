@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import type { ArtistData } from '../artistData';
 import { ChevronDown } from './Icons';
+import { Columns, HoverArea, Lollipops, Ring, Segmented, Sparkline, SERIES } from './viz';
 
 interface Props {
   data: ArtistData;
@@ -9,7 +10,6 @@ interface Props {
   onAddAccounts: () => void;
 }
 
-const fmtK = (k: number) => (k >= 1000 ? `${+(k / 1000).toFixed(2)}M` : `${k}K`);
 const pct1 = (n: number) => `${n.toFixed(1)}%`;
 
 // "248K" / "1.28M" / "312" -> number
@@ -44,60 +44,6 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
   );
 }
 
-function Bar({ pct }: { pct: number }) {
-  return (
-    <div className="bar thin">
-      <div style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
-    </div>
-  );
-}
-
-function StreamsChart({ weeks }: { weeks: { week: string; k: number }[] }) {
-  const W = 643;
-  const x0 = 58;
-  const x1 = 619;
-  const top = 12;
-  const h = 132;
-  const max = Math.max(500, Math.ceil(Math.max(...weeks.map((w) => w.k), 1) / 250) * 250);
-  const y = (v: number) => top + (1 - v / max) * h;
-  const x = (i: number) => (weeks.length === 1 ? (x0 + x1) / 2 : x0 + (i * (x1 - x0)) / (weeks.length - 1));
-  const pts = weeks.map((w, i) => [x(i), y(w.k)] as const);
-  const line = pts.map(([px, py]) => `${px},${py}`).join(' ');
-  const area = `${x(0)},${y(0)} ${line} ${x(weeks.length - 1)},${y(0)}`;
-  const ticks = [0, max / 2, max];
-  return (
-    <svg className="chart" viewBox={`0 0 ${W} 190`} role="img" aria-label="Weekly streams over time">
-      <defs>
-        <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#3e70d9" stopOpacity="0.22" />
-          <stop offset="1" stopColor="#3e70d9" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {ticks.map((v) => (
-        <g key={v}>
-          <line x1={x0} x2={x1} y1={y(v)} y2={y(v)} stroke="#e1e7f0" />
-          <text x={0} y={y(v) + 4} className="axis">
-            {v === 0 ? '0' : fmtK(v)}
-          </text>
-        </g>
-      ))}
-      <polygon points={area} fill="url(#area)" />
-      <polyline points={line} fill="none" stroke="#3e70d9" strokeWidth="2.5" strokeLinejoin="round" />
-      {pts.map(([px, py], i) => (
-        <g key={`${weeks[i].week}-${i}`}>
-          <circle cx={px} cy={py} r="4" fill="#3e70d9" stroke="#fff" strokeWidth="1.5" />
-          <text x={px} y={py - 12} textAnchor={i === 0 ? 'start' : i === weeks.length - 1 ? 'end' : 'middle'} className="point">
-            {fmtK(weeks[i].k)}
-          </text>
-          <text x={px} y={y(0) + 28} textAnchor="middle" className="axis">
-            {weeks[i].week}
-          </text>
-        </g>
-      ))}
-    </svg>
-  );
-}
-
 export default function Analytics({ data, name, connected, onAddAccounts }: Props) {
   const o = data.overview;
   const [range, setRange] = useState('Last 28 days');
@@ -105,11 +51,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
   const [platform, setPlatform] = useState('All platforms');
   const connectedAccounts = data.accounts.filter((a) => connected[a.name] ?? a.connected);
   const unconnected = data.accounts.filter((a) => !(connected[a.name] ?? a.connected));
-  const maxCity = Math.max(...data.cities.map((c) => c.k), 1);
-  const maxRelease = 40;
   const avg = Number(o.catalog_avg_save_rate_pct) || 0;
-  const releaseScale = Math.max(maxRelease, Math.ceil(Math.max(avg, ...data.releases.map((r) => r.saveRate)) / 10) * 10);
-  const swatches = ['#3e70d9', '#8fa9e8', '#c9d8f6'];
   const newPct = Number(o.new_listeners_pct) || 0;
 
   // Everything below is derived from the 28-day CSV figures so the filters stay consistent.
@@ -205,6 +147,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
             <span className="kpi-delta">
               <b>{delta}</b> {note}
             </span>
+            {label !== 'Indexed documents' && <Sparkline values={chartWeeks.map((w) => w.k)} />}
           </div>
         ))}
       </div>
@@ -212,22 +155,14 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
       <div className="agrid">
         <Card title="Streams over time" sub={`${days === 7 ? 'Daily' : 'Weekly'} total · ${windowLabel}`}>
           <span className="legend">● {platform}</span>
-          <StreamsChart weeks={chartWeeks} />
+          <HoverArea points={chartWeeks.map((w) => ({ label: w.week, k: w.k }))} caption={`${platform} streams, ${windowLabel}`} />
         </Card>
 
         <Card title="Where your listeners are" sub={`${kpiLabelPrefix} audience · ${rangeShort}`}>
-          <div className="rows spaced">
-            {data.cities.map((c) => (
-              <div className="city" key={c.city}>
-                <div>
-                  <div className="row-title">{c.city}</div>
-                  <div className="row-sub">{c.country}</div>
-                </div>
-                <Bar pct={(c.k / maxCity) * 100} />
-                <div className="row-val">{fmtCount(c.k * 1e3 * fl)}</div>
-              </div>
-            ))}
-          </div>
+          <Lollipops
+            items={data.cities.map((c) => ({ label: c.city, sub: c.country, value: c.k * 1e3 * fl }))}
+            format={(v) => fmtCount(v)}
+          />
         </Card>
 
         <Card title="Your top tracks" sub={`All ${data.tracks.length} tracks in this demo catalog`}>
@@ -257,30 +192,11 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
         </Card>
 
         <Card title="Where your streams come from" sub={`Share of Spotify streams · ${rangeShort}`}>
-          <div className="rows source">
-            {data.sources.map((s) => (
-              <div className="source-row" key={s.source}>
-                <div>
-                  <div className="row-title">{s.source}</div>
-                  <div className="row-sub">{s.detail}</div>
-                </div>
-                <Bar pct={s.share} />
-                <div className="row-val">{s.share}%</div>
-              </div>
-            ))}
-          </div>
+          <Segmented parts={data.sources.map((x) => ({ label: x.source, value: x.share, detail: x.detail }))} />
         </Card>
 
         <Card title="Who’s listening" sub="Spotify audience · Age and loyalty">
-          <div className="rows age">
-            {data.ages.map((a) => (
-              <div className="age-row" key={a.group}>
-                <div className="row-title">{a.group}</div>
-                <Bar pct={a.share} />
-                <div className="row-val">{a.share}%</div>
-              </div>
-            ))}
-          </div>
+          <Columns items={data.ages.map((x) => ({ label: x.group, value: x.share }))} />
           <div className="split-block">
             <div className="row-title">New vs returning listeners</div>
             <div className="split">
@@ -294,15 +210,15 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
         </Card>
 
         <Card title="Platform breakdown" sub={`Streams by platform · ${rangeShort}`}>
-          <div className="stack">
-            {data.platformBreakdown.map((p, i) => (
-              <div key={p.platform} style={{ width: `${p.share}%`, background: swatches[i % swatches.length] }} />
-            ))}
-          </div>
+          <Segmented
+            legend={false}
+            unit="%"
+            parts={data.platformBreakdown.map((p) => ({ label: p.platform, value: p.share, detail: p.detail }))}
+          />
           <div className="plat">
             {data.platformBreakdown.map((p, i) => (
               <div className="plat-row" key={p.platform} style={plat && plat.platform !== p.platform ? { opacity: 0.45 } : undefined}>
-                <span className="swatch" style={{ background: swatches[i % swatches.length] }} />
+                <span className="swatch" style={{ background: SERIES[i % SERIES.length] }} />
                 <div>
                   <div className="row-title">{p.platform}</div>
                   <div className="row-sub">{p.detail}</div>
@@ -315,6 +231,11 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
         </Card>
 
         <Card title="Fan growth" sub="Followers and listener loyalty">
+          <div className="rings">
+            <Ring pct={newPct} label="New listeners" sub={`${fmtCount(parseCount(o.new_listeners) * fl)} people`} />
+            <Ring pct={Number(String(o.save_rate).replace('%', '')) || 0} label="Save rate" sub={`avg ${pct1(avg)}`} color={SERIES[2]} />
+            <Ring pct={pos} label="Positive buzz" sub={`${o.new_comments} comments`} color={SERIES[3]} />
+          </div>
           <div className="growth">
             <div className="growth-row">
               <div>
@@ -326,39 +247,12 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
                 {prevNote}
               </div>
             </div>
-            <div className="growth-row">
-              <div>
-                <div className="row-title">New listeners</div>
-                <strong>{fmtCount(parseCount(o.new_listeners) * fl)}</strong>
-              </div>
-              <div className="growth-note">{newPct}% of listeners</div>
-            </div>
-            <div className="growth-row">
-              <div>
-                <div className="row-title">Save rate</div>
-                <strong>{o.save_rate}</strong>
-              </div>
-              <div className="growth-note">saves ÷ listeners</div>
-            </div>
           </div>
         </Card>
 
         <Card title="How each release connects" sub={`Save rate (saves ÷ listeners) · ${rangeShort}`}>
-          <div className="release" style={{ ['--avg' as string]: String(avg / releaseScale) }}>
-            <div className="avg-line">
-              <span>Catalog average {pct1(avg)}</span>
-            </div>
-            {data.releases.map((r) => (
-              <div className="release-row" key={r.release}>
-                <div>
-                  <div className="row-title">{r.release}</div>
-                  <div className="row-sub">{fmtCount(r.k * 1e3 * fr * fp)} streams</div>
-                </div>
-                <Bar pct={(r.saveRate / releaseScale) * 100} />
-                <div className="row-val">{pct1(r.saveRate)}</div>
-              </div>
-            ))}
-          </div>
+          <Lollipops items={data.releases.map((r) => ({ label: r.release, sub: `${fmtCount(r.k * 1e3 * fr * fp)} streams`, value: r.saveRate }))} format={pct1} />
+          <p className="avg-note">Catalog average {pct1(avg)}</p>
         </Card>
 
         <Card title="Suggested next steps" sub="Observations from your connected data">

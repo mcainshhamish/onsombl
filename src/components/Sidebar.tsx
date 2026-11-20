@@ -54,7 +54,7 @@ export default function Sidebar({ open, onClose, view, onView, persona, onPerson
     <aside className={`sidebar sb${open ? ' open' : ''}`} aria-label="Workspace navigation">
       <div className="sb-head">
         <div className="sb-brand">onsombl</div>
-        <div className="sb-tagline">MUSIC INTELLIGENCE</div>
+        <div className="sb-tagline">Go Play</div>
       </div>
 
       <div className="sb-label">DEMO ARTISTS</div>
