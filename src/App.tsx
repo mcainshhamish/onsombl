@@ -7,7 +7,7 @@ import ProjectBoard from './components/ProjectBoard';
 import Analytics from './components/Analytics';
 import Modal from './components/Modal';
 import Guide from './components/Guide';
-import EarlyAccess, { type AccessMode } from './components/EarlyAccess';
+import EarlyAccess from './components/EarlyAccess';
 import type { Msg, ChatAction } from './components/Conversation';
 import type { Task, Status } from './data';
 
@@ -17,9 +17,10 @@ export default function App() {
   const [view, setView] = useState<View>('conversation');
   const [personaId, setPersonaId] = useState('maya');
   const [accountsOpen, setAccountsOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [recents, setRecents] = useState<string[]>([]);
   const [chats, setChats] = useState<Record<string, Msg[]>>({});
-  const [access, setAccess] = useState<AccessMode | null>(null);
+  const [access, setAccess] = useState(false);
   const [autoAsk, setAutoAsk] = useState<{ q: string; n: number } | null>(null);
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [load, setLoad] = useState<Load>({ status: 'loading' });
@@ -121,6 +122,8 @@ export default function App() {
     <div className="app">
       <Sidebar
         view={view}
+        open={navOpen}
+        onClose={() => setNavOpen(false)}
         onView={setView}
         recents={recents}
         onAsk={ask}
@@ -131,12 +134,15 @@ export default function App() {
         documentCount={data?.overview.indexed_documents ?? '–'}
         lastSynced={data?.overview.last_synced.replace(/^Synced /, '') ?? ''}
       />
+      {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
       <main className="main">
         <header className="app-header">
-          <button className="btn-soft light" onClick={() => setAccess('login')}>
-            Log in
+          <button className="menu-btn" aria-label="Open menu" onClick={() => setNavOpen(true)}>
+            <span />
+            <span />
+            <span />
           </button>
-          <button className="btn-solid btn-small" onClick={() => setAccess('signup')}>
+          <button className="btn-solid btn-small" onClick={() => setAccess(true)}>
             Sign up for free
           </button>
         </header>
@@ -167,7 +173,7 @@ export default function App() {
           />}
       </main>
 
-      {access && <EarlyAccess mode={access} onClose={() => setAccess(null)} />}
+      {access && <EarlyAccess onClose={() => setAccess(false)} />}
 
       {accountsOpen && data && (
         <Modal title="Add your music accounts" onClose={() => setAccountsOpen(false)}>

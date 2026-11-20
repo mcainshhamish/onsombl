@@ -11,6 +11,8 @@ export type View = 'conversation' | 'analytics' | 'projects' | 'guide';
 const AVATARS: Record<string, string> = { maya: avatarMaya, dev: avatarDev, owls: avatarOwls };
 
 interface Props {
+  open: boolean;
+  onClose: () => void;
   view: View;
   onView: (v: View) => void;
   persona: Persona;
@@ -30,7 +32,7 @@ const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
   { id: 'guide', label: 'Guide', Icon: GuideIcon },
 ];
 
-export default function Sidebar({ view, onView, persona, onPersona, onAddAccounts, onAsk, recents, platformCount, documentCount, lastSynced }: Props) {
+export default function Sidebar({ open, onClose, view, onView, persona, onPersona, onAddAccounts, onAsk, recents, platformCount, documentCount, lastSynced }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +53,7 @@ export default function Sidebar({ view, onView, persona, onPersona, onAddAccount
   const list = [...recents, ...RECENT_CONVERSATIONS.filter((d) => !recents.includes(d))].slice(0, 8);
 
   return (
-    <aside className="sidebar sb" aria-label="Workspace navigation">
+    <aside className={`sidebar sb${open ? ' open' : ''}`} aria-label="Workspace navigation">
       <div className="sb-head">
         <div className="sb-brand">ensemble</div>
         <div className="sb-tagline">MUSIC INTELLIGENCE</div>
@@ -100,7 +102,10 @@ export default function Sidebar({ view, onView, persona, onPersona, onAddAccount
 
       <nav className="sb-nav">
         {NAV.map(({ id, label, Icon }) => (
-          <button key={id} className={`sb-nav-item${view === id ? ' active' : ''}`} onClick={() => onView(id)} aria-current={view === id ? 'page' : undefined}>
+          <button key={id} className={`sb-nav-item${view === id ? ' active' : ''}`} onClick={() => {
+              onView(id);
+              onClose();
+            }} aria-current={view === id ? 'page' : undefined}>
             <Icon />
             <span>{label}</span>
           </button>
@@ -110,7 +115,10 @@ export default function Sidebar({ view, onView, persona, onPersona, onAddAccount
       <div className="sb-label sb-recent-label">RECENT CONVERSATIONS</div>
       <div className="sb-recents">
         {list.map((c) => (
-          <button key={c} title={c} className="sb-link" onClick={() => onAsk(c)}>
+          <button key={c} title={c} className="sb-link" onClick={() => {
+              onAsk(c);
+              onClose();
+            }}>
             {c}
           </button>
         ))}
