@@ -51,3 +51,10 @@ export const PlusIcon = (p: P) => (
     <path d="M12 5v14M5 12h14" />
   </svg>
 );
+
+export const GuideIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5v-15Z" />
+    <path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3M9 8h6M9 12h6" />
+  </svg>
+);

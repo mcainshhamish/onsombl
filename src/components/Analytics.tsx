@@ -96,7 +96,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
     <div className="page analytics">
       <div className="topbar">
         <div className="crumbs">
-          Workspace&nbsp;&nbsp;/&nbsp;&nbsp;Analytics &amp; overview
+          Workspace&nbsp;&nbsp;/&nbsp;&nbsp;My audience
         </div>
         <div className="topbar-actions">
           <button className="btn-solid btn-small wide" onClick={onAddAccounts}>

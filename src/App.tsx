@@ -6,6 +6,9 @@ import Sidebar, { type View } from './components/Sidebar';
 import ProjectBoard from './components/ProjectBoard';
 import Analytics from './components/Analytics';
 import Modal from './components/Modal';
+import Guide from './components/Guide';
+import EarlyAccess, { type AccessMode } from './components/EarlyAccess';
+import type { Msg } from './components/Conversation';
 
 type Load = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: ArtistData; id: string };
 
@@ -13,10 +16,52 @@ export default function App() {
   const [view, setView] = useState<View>('projects');
   const [personaId, setPersonaId] = useState('maya');
   const [accountsOpen, setAccountsOpen] = useState(false);
+  const [recents, setRecents] = useState<string[]>([]);
+  const [chats, setChats] = useState<Record<string, Msg[]>>({});
+  const [access, setAccess] = useState<AccessMode | null>(null);
   const [autoAsk, setAutoAsk] = useState<{ q: string; n: number } | null>(null);
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [load, setLoad] = useState<Load>({ status: 'loading' });
+
+  const recentKey = `ensemble.recent.v1.${personaId}`;
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(recentKey);
+      const list = raw ? JSON.parse(raw) : [];
+      setRecents(Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string').slice(0, 20) : []);
+    } catch {
+      setRecents([]);
+    }
+  }, [recentKey]);
+
+  function addRecent(q: string) {
+    setRecents((prev) => {
+      const next = [q, ...prev.filter((x) => x !== q)].slice(0, 20);
+      try {
+        localStorage.setItem(recentKey, JSON.stringify(next));
+      } catch {
+        /* storage unavailable: keep in memory only */
+      }
+      return next;
+    });
+  }
   const persona = PERSONAS.find((p) => p.id === personaId) ?? PERSONAS[0];
+
+  const hasChat = Object.values(chats).some((m) => m.length > 0);
+  useEffect(() => {
+    if (!hasChat) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [hasChat]);
+
+  const ask = (q: string) => {
+    setAutoAsk({ q, n: Date.now() });
+    setView('conversation');
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -45,10 +90,9 @@ export default function App() {
       <Sidebar
         view={view}
         onView={setView}
-        onAsk={(q) => {
-          setAutoAsk({ q, n: Date.now() });
-          setView('conversation');
-        }}
+        recents={recents}
+        onAsk={ask}
+        onAccess={setAccess}
         persona={persona}
         onPersona={setPersonaId}
         onAddAccounts={open}
@@ -57,6 +101,14 @@ export default function App() {
         lastSynced={data?.overview.last_synced.replace(/^Synced /, '') ?? ''}
       />
       <main className="main">
+        <header className="app-header">
+          <button className="btn-soft light" onClick={() => setAccess('login')}>
+            Log in
+          </button>
+          <button className="btn-solid btn-small" onClick={() => setAccess('signup')}>
+            Sign up for free
+          </button>
+        </header>
         {load.status === 'loading' && <div className="page status-note">Loading {persona.name}’s data…</div>}
         {load.status === 'error' && (
           <div className="page">
@@ -69,8 +121,19 @@ export default function App() {
         )}
         {data && view === 'projects' && <ProjectBoard key={persona.id} data={data} personaId={persona.id} onAddAccounts={open} />}
         {data && view === 'analytics' && <Analytics data={data} name={persona.name} connected={connected} onAddAccounts={open} />}
-        {data && view === 'conversation' && <Conversation key={persona.id} artistId={persona.id} name={persona.name} autoAsk={autoAsk} />}
+        {data && view === 'guide' && <Guide data={data} name={persona.name} onAsk={ask} />}
+        {data && view === 'conversation' && <Conversation
+            key={persona.id}
+            artistId={persona.id}
+            name={persona.name}
+            msgs={chats[persona.id] ?? []}
+            onMsgs={(m) => setChats((c) => ({ ...c, [persona.id]: m }))}
+            autoAsk={autoAsk}
+            onAsked={addRecent}
+          />}
       </main>
+
+      {access && <EarlyAccess mode={access} onClose={() => setAccess(null)} />}
 
       {accountsOpen && data && (
         <Modal title="Add your music accounts" onClose={() => setAccountsOpen(false)}>

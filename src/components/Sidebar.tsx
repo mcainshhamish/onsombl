@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { PERSONAS, RECENT_CONVERSATIONS, type Persona } from '../data';
-import { AnalyticsIcon, ChevronDown, ConversationIcon, ProjectIcon, SettingsIcon } from './Icons';
+import { AnalyticsIcon, ChevronDown, ConversationIcon, GuideIcon, ProjectIcon, SettingsIcon } from './Icons';
 import avatarMayaCard from '../assets/avatar-maya-card.png';
 import avatarMaya from '../assets/avatar-maya.png';
 import avatarDev from '../assets/avatar-dev.png';
 import avatarOwls from '../assets/avatar-owls.png';
 
-export type View = 'conversation' | 'analytics' | 'projects';
+export type View = 'conversation' | 'analytics' | 'projects' | 'guide';
 
 const AVATARS: Record<string, string> = { maya: avatarMaya, dev: avatarDev, owls: avatarOwls };
 
@@ -17,18 +17,21 @@ interface Props {
   onPersona: (id: string) => void;
   onAddAccounts: () => void;
   onAsk: (question: string) => void;
+  onAccess: (mode: 'login' | 'signup') => void;
+  recents: string[];
   platformCount: number;
   documentCount: string;
   lastSynced: string;
 }
 
 const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
-  { id: 'conversation', label: 'Conversation', Icon: ConversationIcon },
-  { id: 'analytics', label: 'Analytics & overview', Icon: AnalyticsIcon },
+  { id: 'conversation', label: 'Chat', Icon: ConversationIcon },
+  { id: 'analytics', label: 'My audience', Icon: AnalyticsIcon },
   { id: 'projects', label: 'Project management', Icon: ProjectIcon },
+  { id: 'guide', label: 'Guide', Icon: GuideIcon },
 ];
 
-export default function Sidebar({ view, onView, persona, onPersona, onAddAccounts, onAsk, platformCount, documentCount, lastSynced }: Props) {
+export default function Sidebar({ view, onView, persona, onPersona, onAddAccounts, onAsk, onAccess, recents, platformCount, documentCount, lastSynced }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -106,22 +109,22 @@ export default function Sidebar({ view, onView, persona, onPersona, onAddAccount
           </button>
         ))}
 
-        <div className="side-label" style={{ top: 419, left: 28 }}>
+        <div className="side-label" style={{ top: 465, left: 28 }}>
           RECENT CONVERSATIONS
         </div>
-        {RECENT_CONVERSATIONS.map((c, i) => (
-          <button key={c} className="side-link" style={{ top: 447 + i * 38 }} onClick={() => onAsk(c)}>
+        {[...recents, ...RECENT_CONVERSATIONS.filter((d) => !recents.includes(d))].slice(0, 4).map((c, i) => (
+          <button key={c} title={c} className="side-link" style={{ top: 493 + i * 38 }} onClick={() => onAsk(c)}>
             {c}
           </button>
         ))}
 
-        <div className="side-label" style={{ top: 652, left: 28 }}>
+        <div className="side-label" style={{ top: 698, left: 28 }}>
           YOUR KNOWLEDGE
         </div>
-        <div className="side-text" style={{ top: 685 }}>
+        <div className="side-text" style={{ top: 731 }}>
           {platformCount} music platforms
         </div>
-        <div className="side-text" style={{ top: 714 }}>
+        <div className="side-text" style={{ top: 760 }}>
           {documentCount} indexed documents
         </div>
       </div>
@@ -132,6 +135,13 @@ export default function Sidebar({ view, onView, persona, onPersona, onAddAccount
           <div className="sync-time">Last synced {lastSynced}</div>
           <button className="btn-solid sync-btn" onClick={onAddAccounts}>
             +&nbsp;&nbsp;Add your music accounts
+          </button>
+        </div>
+        <div className="login-card">
+          <div className="login-title">Save your chats and data</div>
+          <div className="login-sub">Log in or join early access.</div>
+          <button className="btn-soft login-btn" onClick={() => onAccess('login')}>
+            Log in
           </button>
         </div>
         <div className="account-divider" />

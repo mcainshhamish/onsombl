@@ -8,7 +8,7 @@ const API_URL = (process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com') 
 
 const ARTISTS: Record<string, string> = { maya: 'Maya Rivers', dev: 'Dev Okafor', owls: 'The Night Owls' };
 const FILES = [
-  'overview', 'weekly_streams', 'listener_cities', 'tracks', 'stream_sources', 'age_groups',
+  'profile', 'overview', 'weekly_streams', 'listener_cities', 'tracks', 'stream_sources', 'age_groups',
   'platform_breakdown', 'connected_accounts', 'release_save_rates', 'next_steps', 'fan_conversations', 'project', 'tasks',
 ];
 
