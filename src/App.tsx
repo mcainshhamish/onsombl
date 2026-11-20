@@ -121,7 +121,6 @@ export default function App() {
         onSignup={() => setAccess(true)}
         platformCount={platformCount}
         documentCount={data?.overview.indexed_documents ?? '–'}
-        lastSynced={data?.overview.last_synced.replace(/^Synced /, '') ?? ''}
       />
       {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
       <main className="main">

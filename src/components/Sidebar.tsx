@@ -23,7 +23,6 @@ interface Props {
   suggestions: string[];
   platformCount: number;
   documentCount: string;
-  lastSynced: string;
 }
 
 const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
@@ -33,7 +32,7 @@ const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
   { id: 'guide', label: 'Guide', Icon: GuideIcon },
 ];
 
-export default function Sidebar({ open, onClose, view, onView, persona, onPersona, onAddAccounts, onSignup, onAsk, suggestions, platformCount, documentCount, lastSynced }: Props) {
+export default function Sidebar({ open, onClose, view, onView, persona, onPersona, onAddAccounts, onSignup, onAsk, suggestions, platformCount, documentCount }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -136,7 +135,7 @@ export default function Sidebar({ open, onClose, view, onView, persona, onPerson
 
       <div className="sb-foot">
         <div className="sb-know">
-          {platformCount} platforms · {documentCount} documents · synced {lastSynced}
+          {platformCount} platforms · {documentCount} documents
         </div>
         <button className="btn-solid sb-add" onClick={onAddAccounts}>
           +&nbsp;&nbsp;Add your music accounts
