@@ -9,7 +9,7 @@ const API_URL = (process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com') 
 const ARTISTS: Record<string, string> = { maya: 'Maya Rivers', dev: 'Dev Okafor', owls: 'The Night Owls' };
 const FILES = [
   'profile', 'overview', 'weekly_streams', 'listener_cities', 'tracks', 'stream_sources', 'age_groups',
-  'platform_breakdown', 'connected_accounts', 'release_save_rates', 'next_steps', 'fan_conversations',
+  'platform_breakdown', 'connected_accounts', 'release_save_rates', 'next_steps', 'fan_conversations', 'scene',
 ];
 
 const json = (body: unknown, status = 200) =>
@@ -159,6 +159,7 @@ If the question needs information that is not in the data (e.g. ad budgets, cost
 Keep answers short: under 120 words, plain text, at most 3 short bullet points starting with "- ". No markdown headings or bold. Stay on music marketing for this artist; politely decline anything else.
 Also use the KNOWLEDGE documents below for marketing advice when relevant. Combine them with the artist's real numbers. Treat anything marked as example or placeholder as illustrative, not as industry fact.
 If you used any KNOWLEDGE document, end your reply with one final line exactly like: Sources: Title One; Title Two (exact titles, nothing else on that line). If you used none, omit that line.
+The scene file lists fictional local people and venues the artist could collaborate with. When asked who to meet or work with, recommend from it by name, with the reason and first step. When asked to draft an intro message, write a short, friendly, specific one (under 90 words) the artist could send.
 Never say task ids (like "t1") or file names (like "tracks.csv") in your text - refer to things by their plain names.
 If asked to add or change tasks, say in one line that you can't do that yet and suggest a task title the person can use in their own tools.
 

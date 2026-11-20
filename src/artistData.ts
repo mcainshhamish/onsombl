@@ -17,6 +17,7 @@ export interface ArtistData {
   conversations: { source: string; author: string; age: string; text: string; needsReply: boolean }[];
   project: { name: string; start: string; end: string; collaborators: number; documents: string[] };
   tasks: Task[];
+  scene: { name: string; role: string; city: string; genre: string; overlap: number; why: string; firstStep: string }[];
   profile: { genre: string; basedIn: string; careerStage: string; activeSince: string; bio: string; goal: string };
 }
 
@@ -74,7 +75,7 @@ const OVERVIEW_KEYS = [
 ];
 
 export async function loadArtistData(artist: string): Promise<ArtistData> {
-  const [overviewRows, weekly, cities, tracks, sources, ages, plat, accounts, releases, steps, convos, projectRows, tasks, profileRows] =
+  const [overviewRows, weekly, cities, tracks, sources, ages, plat, accounts, releases, steps, convos, projectRows, tasks, profileRows, sceneRows] =
     await Promise.all([
       fetchRows(artist, 'overview', ['key', 'value']),
       fetchRows(artist, 'weekly_streams', ['week', 'streams_k']),
@@ -90,6 +91,7 @@ export async function loadArtistData(artist: string): Promise<ArtistData> {
       fetchRows(artist, 'project', ['key', 'value']),
       fetchRows(artist, 'tasks', ['id', 'title', 'category', 'note', 'assignee', 'due', 'status', 'priority']),
       fetchRows(artist, 'profile', ['key', 'value']),
+      fetchRows(artist, 'scene', ['name', 'role', 'city', 'genre', 'overlap_pct', 'why', 'first_step']),
     ]);
 
   const overview = kv(overviewRows);
@@ -161,6 +163,15 @@ export async function loadArtistData(artist: string): Promise<ArtistData> {
       documents: p.documents.split('|').map((d) => d.trim()).filter(Boolean),
     },
     tasks: parsedTasks,
+    scene: sceneRows.map((r, i) => ({
+      name: r.name,
+      role: r.role,
+      city: r.city,
+      genre: r.genre,
+      overlap: num(r, 'scene', 'overlap_pct', i + 2),
+      why: r.why,
+      firstStep: r.first_step,
+    })),
     profile: { genre: pr.genre, basedIn: pr.based_in, careerStage: pr.career_stage, activeSince: pr.active_since, bio: pr.bio, goal: pr.goal },
   };
 }

@@ -58,3 +58,11 @@ export const GuideIcon = (p: P) => (
     <path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3M9 8h6M9 12h6" />
   </svg>
 );
+
+export const CollabIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <circle cx="9" cy="8" r="3" />
+    <circle cx="17" cy="9" r="2.4" />
+    <path d="M3.5 19a5.5 5.5 0 0 1 11 0M15 15.2a4.5 4.5 0 0 1 5.5 3.8" />
+  </svg>
+);

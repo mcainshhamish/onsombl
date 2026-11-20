@@ -6,6 +6,7 @@ import Sidebar, { type View } from './components/Sidebar';
 import Analytics from './components/Analytics';
 import Modal from './components/Modal';
 import Guide from './components/Guide';
+import Collaborate from './components/Collaborate';
 import EarlyAccess from './components/EarlyAccess';
 import type { Msg } from './components/Conversation';
 
@@ -111,6 +112,7 @@ export default function App() {
           </div>
         )}
         {data && view === 'analytics' && <Analytics data={data} name={persona.name} connected={connected} onAddAccounts={open} onAsk={ask} onSignup={setAccess} />}
+        {data && view === 'collaborate' && <Collaborate data={data} name={persona.name} onAsk={ask} />}
         {data && view === 'guide' && <Guide data={data} name={persona.name} onAsk={ask} />}
         {data && view === 'conversation' && <Conversation
             key={persona.id}

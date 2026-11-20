@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { PERSONAS, type Persona } from '../data';
-import { AnalyticsIcon, ChevronDown, ConversationIcon, GuideIcon, SettingsIcon } from './Icons';
+import { AnalyticsIcon, ChevronDown, ConversationIcon, GuideIcon, SettingsIcon, CollabIcon } from './Icons';
 import avatarMayaCard from '../assets/avatar-maya-card.png';
 import avatarMaya from '../assets/avatar-maya.png';
 import avatarDev from '../assets/avatar-dev.png';
 import avatarOwls from '../assets/avatar-owls.png';
 
-export type View = 'conversation' | 'analytics' | 'guide';
+export type View = 'conversation' | 'analytics' | 'collaborate' | 'guide';
 
 const AVATARS: Record<string, string> = { maya: avatarMaya, dev: avatarDev, owls: avatarOwls };
 
@@ -28,6 +28,7 @@ interface Props {
 const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
   { id: 'conversation', label: 'Chat', Icon: ConversationIcon },
   { id: 'analytics', label: 'My audience', Icon: AnalyticsIcon },
+  { id: 'collaborate', label: 'Collaborate', Icon: CollabIcon },
   { id: 'guide', label: 'Guide', Icon: GuideIcon },
 ];
 
