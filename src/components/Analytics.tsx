@@ -256,24 +256,6 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
           </table>
         </Card>
 
-        <Card title="Your data, connected" sub={`${connectedAccounts.length} platforms · ${o.last_synced}`}>
-          <ul className="connected">
-            {connectedAccounts.map((a) => (
-              <li key={a.name}>
-                <span className="dot">●</span>
-                <div>
-                  <div className="row-title">{a.name}</div>
-                  <div className="row-sub">{a.detail}</div>
-                </div>
-                <span className="synced">Synced</span>
-              </li>
-            ))}
-          </ul>
-          <button className="dashed" onClick={onAddAccounts}>
-            +&nbsp;&nbsp;Add Instagram, TikTok or other accounts
-          </button>
-        </Card>
-
         <Card title="Where your streams come from" sub={`Share of Spotify streams · ${rangeShort}`}>
           <div className="rows source">
             {data.sources.map((s) => (
@@ -449,6 +431,24 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
             </div>
           )}
         </Card>
+        <Card title="Connections" sub={`${connectedAccounts.length} platforms connected`}>
+          <ul className="connected">
+            {connectedAccounts.map((a) => (
+              <li key={a.name}>
+                <span className="dot">●</span>
+                <div>
+                  <div className="row-title">{a.name}</div>
+                  <div className="row-sub">{a.detail}</div>
+                </div>
+                <span className="synced">Connected</span>
+              </li>
+            ))}
+          </ul>
+          <button className="dashed" onClick={onAddAccounts}>
+            +&nbsp;&nbsp;Add Instagram, TikTok or other accounts
+          </button>
+        </Card>
+
       </div>
 
       <div className="page-foot single">
