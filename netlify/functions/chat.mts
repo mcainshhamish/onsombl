@@ -33,12 +33,30 @@ async function bump(key: string, limit: number): Promise<boolean> {
   }
 }
 
+async function readLocal(artist: string, f: string): Promise<string | null> {
+  const { readFile } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  const roots = [process.env.LAMBDA_TASK_ROOT, process.cwd(), '/var/task'].filter(Boolean) as string[];
+  for (const root of roots) {
+    try {
+      return await readFile(join(root, 'public', 'data', artist, `${f}.csv`), 'utf8');
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}
+
 async function loadContext(origin: string, artist: string): Promise<string> {
   const parts = await Promise.all(
     FILES.map(async (f) => {
-      const r = await fetch(`${origin}/data/${artist}/${f}.csv`);
-      if (!r.ok) throw new Error(`Missing ${f}.csv`);
-      return `### ${f}.csv\n${(await r.text()).trim()}`;
+      let text = await readLocal(artist, f);
+      if (text === null) {
+        const r = await fetch(`${origin}/data/${artist}/${f}.csv`);
+        if (!r.ok) throw new Error(`Missing ${f}.csv`);
+        text = await r.text();
+      }
+      return `### ${f}.csv\n${text.trim()}`;
     }),
   );
   return parts.join('\n\n');

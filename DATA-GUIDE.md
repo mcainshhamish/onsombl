@@ -8,7 +8,10 @@ All artist data lives in CSV files. The app reads them when the page loads.
 Artists (folder names): maya = Maya Rivers, dev, owls.
 NOTE: dev/ and owls/ are currently copies of Maya's placeholder data. Replace them with real data.
 
-## Quickest way to change data on the live site
+## Changing data now that the site deploys from GitHub
+Edit the CSV in the GitHub repo (public/data/<artist>/ -> pencil icon -> Commit). Netlify rebuilds automatically and the app and chat both use the new data.
+
+## Older way (manual upload only)
 1. Edit a CSV in dist/data/<artist>/ (Excel / Google Sheets -> Export as CSV, UTF-8).
 2. Re-deploy the dist folder to Netlify.
 Also copy the edit into public/data/ if you will rebuild later (npm run build).
