@@ -1855,3 +1855,5 @@ button {
 @media (max-height: 700px) { .persona-hint { display: inline; } }
 .persona-cta .persona-hint { white-space: nowrap; font-size: 11px; margin-left: 6px; }
 .persona-cta { padding-right: 0; }
+.persona-menu .menu-cta { margin-top: 4px; border-top: 1px solid var(--divider); border-radius: 0 0 7px 7px; color: var(--accent-dark); font-weight: 700; padding-top: 10px; }
+.persona-menu .menu-cta span { font-weight: 400; }

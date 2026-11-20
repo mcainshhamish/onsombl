@@ -77,6 +77,17 @@ export default function Sidebar({ open, onClose, view, onView, persona, onPerson
                 <span>{p.kind}</span>
               </button>
             ))}
+            <button
+              role="menuitem"
+              className="menu-cta"
+              onClick={() => {
+                setMenuOpen(false);
+                onSignup();
+              }}
+            >
+              + Add your account
+              <span>Sign up for early access</span>
+            </button>
           </div>
         )}
       </div>
