@@ -16,6 +16,7 @@ interface Props {
   persona: Persona;
   onPersona: (id: string) => void;
   onAddAccounts: () => void;
+  onAsk: (question: string) => void;
   platformCount: number;
   documentCount: string;
   lastSynced: string;
@@ -27,7 +28,7 @@ const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
   { id: 'projects', label: 'Project management', Icon: ProjectIcon },
 ];
 
-export default function Sidebar({ view, onView, persona, onPersona, onAddAccounts, platformCount, documentCount, lastSynced }: Props) {
+export default function Sidebar({ view, onView, persona, onPersona, onAddAccounts, onAsk, platformCount, documentCount, lastSynced }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -109,7 +110,7 @@ export default function Sidebar({ view, onView, persona, onPersona, onAddAccount
           RECENT CONVERSATIONS
         </div>
         {RECENT_CONVERSATIONS.map((c, i) => (
-          <button key={c} className="side-link" style={{ top: 447 + i * 38 }} onClick={() => onView('conversation')}>
+          <button key={c} className="side-link" style={{ top: 447 + i * 38 }} onClick={() => onAsk(c)}>
             {c}
           </button>
         ))}

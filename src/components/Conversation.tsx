@@ -12,15 +12,24 @@ const SUGGESTIONS = [
   'How are my fans reacting to my latest release?',
 ];
 
-export default function Conversation({ artistId, name }: { artistId: string; name: string }) {
+export default function Conversation({ artistId, name, autoAsk }: { artistId: string; name: string; autoAsk?: { q: string; n: number } | null }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const lastAuto = useRef(0);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: 'nearest' });
   }, [msgs, busy]);
+
+  useEffect(() => {
+    if (autoAsk && autoAsk.n !== lastAuto.current) {
+      lastAuto.current = autoAsk.n;
+      void ask(autoAsk.q);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAsk]);
 
   async function ask(text: string) {
     const q = text.trim();
@@ -39,6 +48,7 @@ export default function Conversation({ artistId, name }: { artistId: string; nam
         }),
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) throw new Error('Your session expired. Please refresh the page and try again.');
       if (!res.ok) throw new Error(data.message || 'Something went wrong. Please try again.');
       setMsgs([...next, { role: 'assistant', content: data.reply }]);
     } catch (e) {

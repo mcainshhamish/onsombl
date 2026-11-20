@@ -13,6 +13,7 @@ export default function App() {
   const [view, setView] = useState<View>('projects');
   const [personaId, setPersonaId] = useState('maya');
   const [accountsOpen, setAccountsOpen] = useState(false);
+  const [autoAsk, setAutoAsk] = useState<{ q: string; n: number } | null>(null);
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [load, setLoad] = useState<Load>({ status: 'loading' });
   const persona = PERSONAS.find((p) => p.id === personaId) ?? PERSONAS[0];
@@ -44,6 +45,10 @@ export default function App() {
       <Sidebar
         view={view}
         onView={setView}
+        onAsk={(q) => {
+          setAutoAsk({ q, n: Date.now() });
+          setView('conversation');
+        }}
         persona={persona}
         onPersona={setPersonaId}
         onAddAccounts={open}
@@ -64,7 +69,7 @@ export default function App() {
         )}
         {data && view === 'projects' && <ProjectBoard key={persona.id} data={data} personaId={persona.id} onAddAccounts={open} />}
         {data && view === 'analytics' && <Analytics data={data} name={persona.name} connected={connected} onAddAccounts={open} />}
-        {data && view === 'conversation' && <Conversation key={persona.id} artistId={persona.id} name={persona.name} />}
+        {data && view === 'conversation' && <Conversation key={persona.id} artistId={persona.id} name={persona.name} autoAsk={autoAsk} />}
       </main>
 
       {accountsOpen && data && (
