@@ -73,7 +73,7 @@ export default function Guide({ data, name, onAsk }: Props) {
         title={`About ${first}`}
         action={
           <button className="link-btn" onClick={() => onAsk(`Give me a short summary of ${name} and where we are right now.`)}>
-            Ask ensemble →
+            Ask onsombl →
           </button>
         }
       >
@@ -101,14 +101,14 @@ export default function Guide({ data, name, onAsk }: Props) {
         <p className="guide-text">
           With {o.listeners} Spotify listeners over the last 28 days, {first} sits in the <b>{band.label}</b> band. {band.text}
         </p>
-        <p className="guide-note">These bands are ensemble’s own rough guide, not an industry standard. Compare {first} with their own past numbers first.</p>
+        <p className="guide-note">These bands are onsombl’s own rough guide, not an industry standard. Compare {first} with their own past numbers first.</p>
       </Section>
 
       <Section
         title="What the data says"
         action={
           <button className="link-btn" onClick={() => onAsk(`What are the three most important things in ${first}'s data right now?`)}>
-            Ask ensemble →
+            Ask onsombl →
           </button>
         }
       >

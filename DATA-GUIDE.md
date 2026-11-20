@@ -1,4 +1,4 @@
-# ensemble – editing artist data
+# onsombl – editing artist data
 
 All artist data lives in CSV files. The app reads them when the page loads.
 

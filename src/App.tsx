@@ -164,7 +164,7 @@ export default function App() {
 
       {accountsOpen && data && (
         <Modal title="Add your music accounts" onClose={() => setAccountsOpen(false)}>
-          <p className="modal-text">Connect the platforms ensemble should learn from. This is a demo, so nothing is actually linked.</p>
+          <p className="modal-text">Connect the platforms onsombl should learn from. This is a demo, so nothing is actually linked.</p>
           <ul className="account-list">
             {data.accounts.map((a) => (
               <li key={a.name}>

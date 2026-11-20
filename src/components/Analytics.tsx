@@ -327,7 +327,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
               <div key={s.title}>
                 <div className="row-title">{s.title}</div>
                 <p>{s.detail}</p>
-                <button className="link-btn">Ask ensemble about this →</button>
+                <button className="link-btn">Ask onsombl about this →</button>
               </div>
             ))}
           </div>

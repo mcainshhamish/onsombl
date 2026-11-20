@@ -3,7 +3,7 @@ import Modal from './Modal';
 export default function EarlyAccess({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="Sign up for free" onClose={onClose}>
-      <p className="modal-text">ensemble is in early access. Leave your details and we’ll invite you when accounts open.</p>
+      <p className="modal-text">onsombl is in early access. Leave your details and we’ll invite you when accounts open.</p>
       <iframe
         className="tally-frame"
         src="https://tally.so/embed/q5RZj2?hideTitle=1&transparentBackground=1&dynamicHeight=0&source=signup"
