@@ -34,10 +34,10 @@ export const PERSONAS: Persona[] = [
 ];
 
 export const RECENT_CONVERSATIONS = [
-  'Why did Afterglow grow?',
+  'What is my best-performing track?',
   'Where are my listeners?',
   'Compare my last two releases',
-  'Summer tour opportunities',
+  'Which platform should I focus on?',
 ];
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

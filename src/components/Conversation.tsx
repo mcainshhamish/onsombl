@@ -32,9 +32,13 @@ function Reveal({ text, animate }: { text: string; animate: boolean }) {
   }, [animate, text]);
   return (
     <>
-      {text.slice(0, n).split('\n').map((line, j) => (
-        <p key={j}>{line}</p>
-      ))}
+      {text.slice(0, n).split('\n').map((line, j) =>
+        line.startsWith('- ') ? (
+          <p key={j} className="bullet">{line.slice(2)}</p>
+        ) : (
+          <p key={j}>{line}</p>
+        ),
+      )}
       <span ref={end} />
     </>
   );

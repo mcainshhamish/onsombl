@@ -100,6 +100,7 @@ export default async (req: Request) => {
 Answer using ONLY the data below (CSV files). Be specific: quote the real numbers and names from the data.
 If the question needs information that is not in the data (e.g. ad budgets, costs, other artists), say plainly what the data does and doesn't show, then give a sensible, clearly-labelled suggestion. Never invent figures.
 Keep answers short: under 120 words, plain text, at most 3 short bullet points starting with "- ". No markdown headings or bold. Stay on music marketing for this artist; politely decline anything else.
+Never mention task ids (like "t1") or file names (like "tracks.csv") - refer to things by their plain names. You cannot add or change tasks on the board; if asked, say so in one line and suggest a task title the person can add themselves.
 
 DATA
 ${context}`;
