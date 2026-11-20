@@ -5,6 +5,7 @@ export interface Msg {
   role: 'user' | 'assistant';
   content: string;
   error?: boolean;
+  sources?: string[];
   at: number;
 }
 
@@ -123,7 +124,7 @@ export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk }: 
       const data = await res.json().catch(() => ({}));
       if (res.status === 401 || res.status === 403) throw new Error('Your session expired. Please refresh the page and try again.');
       if (!res.ok) throw new Error(data.message || 'Something went wrong. Please try again.');
-      onMsgs([...next, { role: 'assistant', content: data.reply, at: Date.now() }]);
+      onMsgs([...next, { role: 'assistant', content: data.reply, sources: Array.isArray(data.sources) ? data.sources : [], at: Date.now() }]);
     } catch (e) {
       onMsgs([...next, { role: 'assistant', content: e instanceof Error ? e.message : 'Something went wrong.', error: true, at: Date.now() }]);
     } finally {
@@ -158,6 +159,14 @@ export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk }: 
           ) : (
             <div key={i} className={`msg assistant${m.error ? ' err' : ''}`}>
               <Reveal text={m.content} animate={!m.error && Date.now() - m.at < 2000} />
+              {!!m.sources?.length && (
+                <div className="sources">
+                  <span>Sources</span>
+                  {m.sources.map((t) => (
+                    <em key={t}>{t}</em>
+                  ))}
+                </div>
+              )}
               {!m.error && <CopyButton text={m.content} />}
             </div>
           ),

@@ -4,4 +4,4 @@
   functions = "netlify/functions"
 
 [functions]
-  included_files = ["public/data/**"]
+  included_files = ["public/data/**", "knowledge/**"]

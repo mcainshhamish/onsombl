@@ -51,3 +51,6 @@ tasks.csv            id,title,category,note,assignee,due,status,priority
 
 ## Note
 This repository is public. Never commit API keys or secrets here; keep them in Netlify environment variables.
+
+## Knowledge documents
+See KNOWLEDGE-GUIDE.md. Documents in `knowledge/` are used by the chat and cited under its answers.

@@ -1894,3 +1894,7 @@ button {
 .lolli-row:hover .lolli-dot { transform: scale(1.12); }
 .avg-note { margin: 16px 0 0; font-size: 12px; color: var(--muted); }
 .step-actions { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+
+.sources{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:12px;color:var(--muted,#6b7280)}
+.sources span{font-weight:600;margin-right:2px}
+.sources em{font-style:normal;border:1px solid #e3e5ea;border-radius:999px;padding:2px 9px;background:#f7f8fa}
