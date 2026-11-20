@@ -5,6 +5,7 @@ export interface Msg {
   role: 'user' | 'assistant';
   content: string;
   error?: boolean;
+  acted?: boolean;
   at: number;
 }
 
@@ -12,6 +13,7 @@ const SUGGESTIONS = [
   'What’s driving my growth, and what should I focus on next?',
   'Which city should I target first?',
   'How are my fans reacting to my latest release?',
+  'Add a task to pitch playlist curators',
 ];
 
 // Shows a freshly arrived reply gradually; older replies appear instantly.
@@ -79,9 +81,16 @@ interface Props {
   onMsgs: (m: Msg[]) => void;
   autoAsk?: { q: string; n: number } | null;
   onAsked?: (q: string) => void;
+  getTasks: () => { id: string; title: string; status: string; due: string }[];
+  onActions: (actions: ChatAction[]) => void;
+  onOpenBoard: () => void;
 }
 
-export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk, onAsked }: Props) {
+export type ChatAction =
+  | { type: 'add_task'; title: string; category: string; note: string; due: string; priority: string }
+  | { type: 'update_task_status'; id: string; status: string };
+
+export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk, onAsked, getTasks, onActions, onOpenBoard }: Props) {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmNew, setConfirmNew] = useState(false);
@@ -116,12 +125,15 @@ export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk, on
         body: JSON.stringify({
           artist: artistId,
           messages: next.filter((m) => !m.error).map(({ role, content }) => ({ role, content })),
+          tasks: getTasks().map(({ id, title, status, due }) => ({ id, title, status, due })),
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 401 || res.status === 403) throw new Error('Your session expired. Please refresh the page and try again.');
       if (!res.ok) throw new Error(data.message || 'Something went wrong. Please try again.');
-      onMsgs([...next, { role: 'assistant', content: data.reply, at: Date.now() }]);
+      const actions: ChatAction[] = Array.isArray(data.actions) ? data.actions : [];
+      if (actions.length) onActions(actions);
+      onMsgs([...next, { role: 'assistant', content: data.reply, acted: actions.length > 0, at: Date.now() }]);
     } catch (e) {
       onMsgs([...next, { role: 'assistant', content: e instanceof Error ? e.message : 'Something went wrong.', error: true, at: Date.now() }]);
     } finally {
@@ -156,6 +168,11 @@ export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk, on
           ) : (
             <div key={i} className={`msg assistant${m.error ? ' err' : ''}`}>
               <Reveal text={m.content} animate={!m.error && Date.now() - m.at < 2000} />
+              {m.acted && (
+                <button className="board-link" onClick={onOpenBoard}>
+                  View project board →
+                </button>
+              )}
               {!m.error && <CopyButton text={m.content} />}
             </div>
           ),

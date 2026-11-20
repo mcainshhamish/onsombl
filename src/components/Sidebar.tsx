@@ -17,7 +17,6 @@ interface Props {
   onPersona: (id: string) => void;
   onAddAccounts: () => void;
   onAsk: (question: string) => void;
-  onAccess: (mode: 'login' | 'signup') => void;
   recents: string[];
   platformCount: number;
   documentCount: string;
@@ -31,7 +30,7 @@ const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
   { id: 'guide', label: 'Guide', Icon: GuideIcon },
 ];
 
-export default function Sidebar({ view, onView, persona, onPersona, onAddAccounts, onAsk, onAccess, recents, platformCount, documentCount, lastSynced }: Props) {
+export default function Sidebar({ view, onView, persona, onPersona, onAddAccounts, onAsk, recents, platformCount, documentCount, lastSynced }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -49,103 +48,82 @@ export default function Sidebar({ view, onView, persona, onPersona, onAddAccount
     setMenuOpen(false);
   };
 
+  const list = [...recents, ...RECENT_CONVERSATIONS.filter((d) => !recents.includes(d))].slice(0, 8);
+
   return (
-    <aside className="sidebar" aria-label="Workspace navigation">
-      <div className="sidebar-top">
-        <div className="brand">ensemble</div>
-        <div className="tagline">MUSIC INTELLIGENCE</div>
-        <div className="side-label" style={{ top: 90 }}>
-          SWITCH ARTIST · TRY A PERSONA
-        </div>
+    <aside className="sidebar sb" aria-label="Workspace navigation">
+      <div className="sb-head">
+        <div className="sb-brand">ensemble</div>
+        <div className="sb-tagline">MUSIC INTELLIGENCE</div>
+      </div>
 
-        <div className="artist-card" ref={menuRef}>
-          <img className="artist-avatar" src={avatarMayaCard} alt="" />
-          <div className="artist-name">{persona.name}</div>
-          <div className="artist-kind">{persona.kind}</div>
-          <button className="switch-pill" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen}>
-            Switch
-            <ChevronDown />
-          </button>
-          {menuOpen && (
-            <div className="persona-menu" role="menu">
-              {PERSONAS.map((p) => (
-                <button key={p.id} role="menuitem" className={p.id === persona.id ? 'on' : ''} onClick={() => pick(p.id)}>
-                  {p.name}
-                  <span>{p.kind}</span>
-                </button>
-              ))}
-            </div>
-          )}
+      <div className="sb-label">SWITCH ARTIST · TRY A PERSONA</div>
+      <div className="sb-card" ref={menuRef}>
+        <img className="sb-card-avatar" src={avatarMayaCard} alt="" />
+        <div className="sb-card-text">
+          <div className="sb-card-name">{persona.name}</div>
+          <div className="sb-card-kind">{persona.kind}</div>
         </div>
+        <button className="switch-pill sb-switch" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen}>
+          Switch
+          <ChevronDown />
+        </button>
+        {menuOpen && (
+          <div className="persona-menu" role="menu">
+            {PERSONAS.map((p) => (
+              <button key={p.id} role="menuitem" className={p.id === persona.id ? 'on' : ''} onClick={() => pick(p.id)}>
+                {p.name}
+                <span>{p.kind}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
-        <div className="persona-row">
-          {PERSONAS.map((p) => (
-            <button
-              key={p.id}
-              className={`persona-avatar ${p.id}${p.id === persona.id ? ' selected' : ''}`}
-              onClick={() => pick(p.id)}
-              aria-label={`Switch to ${p.name}`}
-              aria-pressed={p.id === persona.id}
-            >
-              <img src={AVATARS[p.id]} alt="" />
-            </button>
-          ))}
-          <button className="persona-add" onClick={() => setMenuOpen(true)} aria-label="Try a persona">
-            +
-          </button>
-          <span className="persona-hint">Try a persona</span>
-        </div>
-
-        {NAV.map(({ id, label, Icon }, i) => (
+      <div className="sb-personas">
+        {PERSONAS.map((p) => (
           <button
-            key={id}
-            className={`nav-item${view === id ? ' active' : ''}`}
-            style={{ top: 244 + i * 46 }}
-            onClick={() => onView(id)}
-            aria-current={view === id ? 'page' : undefined}
+            key={p.id}
+            className={`persona-avatar ${p.id}${p.id === persona.id ? ' selected' : ''}`}
+            onClick={() => pick(p.id)}
+            aria-label={`Switch to ${p.name}`}
+            aria-pressed={p.id === persona.id}
           >
+            <img src={AVATARS[p.id]} alt="" />
+          </button>
+        ))}
+        <button className="persona-add" onClick={() => setMenuOpen(true)} aria-label="Try a persona">
+          +
+        </button>
+        <span className="persona-hint">Try a persona</span>
+      </div>
+
+      <nav className="sb-nav">
+        {NAV.map(({ id, label, Icon }) => (
+          <button key={id} className={`sb-nav-item${view === id ? ' active' : ''}`} onClick={() => onView(id)} aria-current={view === id ? 'page' : undefined}>
             <Icon />
             <span>{label}</span>
           </button>
         ))}
+      </nav>
 
-        <div className="side-label" style={{ top: 465, left: 28 }}>
-          RECENT CONVERSATIONS
-        </div>
-        {[...recents, ...RECENT_CONVERSATIONS.filter((d) => !recents.includes(d))].slice(0, 4).map((c, i) => (
-          <button key={c} title={c} className="side-link" style={{ top: 493 + i * 38 }} onClick={() => onAsk(c)}>
+      <div className="sb-label sb-recent-label">RECENT CONVERSATIONS</div>
+      <div className="sb-recents">
+        {list.map((c) => (
+          <button key={c} title={c} className="sb-link" onClick={() => onAsk(c)}>
             {c}
           </button>
         ))}
-
-        <div className="side-label" style={{ top: 698, left: 28 }}>
-          YOUR KNOWLEDGE
-        </div>
-        <div className="side-text" style={{ top: 731 }}>
-          {platformCount} music platforms
-        </div>
-        <div className="side-text" style={{ top: 760 }}>
-          {documentCount} indexed documents
-        </div>
       </div>
 
-      <div className="sidebar-bottom">
-        <div className="sync-box">
-          <div className="sync-status">●&nbsp;&nbsp;Knowledge is up to date</div>
-          <div className="sync-time">Last synced {lastSynced}</div>
-          <button className="btn-solid sync-btn" onClick={onAddAccounts}>
-            +&nbsp;&nbsp;Add your music accounts
-          </button>
+      <div className="sb-foot">
+        <div className="sb-know">
+          {platformCount} platforms · {documentCount} documents · synced {lastSynced}
         </div>
-        <div className="login-card">
-          <div className="login-title">Save your chats and data</div>
-          <div className="login-sub">Log in or join early access.</div>
-          <button className="btn-soft login-btn" onClick={() => onAccess('login')}>
-            Log in
-          </button>
-        </div>
-        <div className="account-divider" />
-        <div className="account-row">
+        <button className="btn-solid sb-add" onClick={onAddAccounts}>
+          +&nbsp;&nbsp;Add your music accounts
+        </button>
+        <div className="sb-account">
           <div>
             <div className="account-name">{persona.possessive}</div>
             <div className="account-sub">Demo workspace · Example data</div>

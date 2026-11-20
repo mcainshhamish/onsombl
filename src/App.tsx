@@ -8,12 +8,13 @@ import Analytics from './components/Analytics';
 import Modal from './components/Modal';
 import Guide from './components/Guide';
 import EarlyAccess, { type AccessMode } from './components/EarlyAccess';
-import type { Msg } from './components/Conversation';
+import type { Msg, ChatAction } from './components/Conversation';
+import type { Task, Status } from './data';
 
 type Load = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: ArtistData; id: string };
 
 export default function App() {
-  const [view, setView] = useState<View>('projects');
+  const [view, setView] = useState<View>('conversation');
   const [personaId, setPersonaId] = useState('maya');
   const [accountsOpen, setAccountsOpen] = useState(false);
   const [recents, setRecents] = useState<string[]>([]);
@@ -81,6 +82,37 @@ export default function App() {
     };
   }, [persona.id]);
 
+  const taskKey = `ensemble.tasks.v2.${personaId}`;
+  function readTasks(): Task[] {
+    try {
+      const raw = localStorage.getItem(taskKey);
+      if (raw) return JSON.parse(raw) as Task[];
+    } catch {
+      /* fall through to the CSV tasks */
+    }
+    return load.status === 'ready' ? load.data.tasks : [];
+  }
+  function applyActions(actions: ChatAction[]) {
+    let tasks = readTasks();
+    const assignee = persona.name.startsWith('The ') ? persona.name.slice(4) : persona.name.split(' ')[0];
+    for (const a of actions) {
+      if (a.type === 'add_task') {
+        let n = tasks.length + 1;
+        while (tasks.some((t) => t.id === `t${n}`)) n++;
+        const t: Task = { id: `t${n}`, title: a.title, category: a.category, note: a.note, assignee, due: a.due, status: 'todo' };
+        if (a.priority === 'High') t.priority = 'High';
+        tasks = [...tasks, t];
+      } else if (a.type === 'update_task_status') {
+        tasks = tasks.map((t) => (t.id === a.id ? { ...t, status: a.status as Status } : t));
+      }
+    }
+    try {
+      localStorage.setItem(taskKey, JSON.stringify(tasks));
+    } catch {
+      /* storage unavailable */
+    }
+  }
+
   const open = () => setAccountsOpen(true);
   const data = load.status === 'ready' ? load.data : null;
   const platformCount = data ? data.accounts.filter((a) => connected[a.name] ?? a.connected).length : 0;
@@ -92,7 +124,6 @@ export default function App() {
         onView={setView}
         recents={recents}
         onAsk={ask}
-        onAccess={setAccess}
         persona={persona}
         onPersona={setPersonaId}
         onAddAccounts={open}
@@ -130,6 +161,9 @@ export default function App() {
             onMsgs={(m) => setChats((c) => ({ ...c, [persona.id]: m }))}
             autoAsk={autoAsk}
             onAsked={addRecent}
+            getTasks={readTasks}
+            onActions={applyActions}
+            onOpenBoard={() => setView('projects')}
           />}
       </main>
 
