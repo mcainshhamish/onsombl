@@ -1,6 +1,6 @@
 name,detail,connected
-Spotify for Artists,Streams · listeners · saves,true
-Apple Music for Artists,Streams · track performance,true
-YouTube Analytics,Music streams · catalog,true
-Instagram,"Comments, reach and story replies",false
-TikTok,Sound usage and video comments,false
+Spotify for Artists,"Streams, listeners and playlists",true
+Apple Music for Artists,"Plays, Shazams and listeners",true
+YouTube Analytics,"Views, watch time and subscribers",true
+Instagram,"Reach, followers and Stories",false
+TikTok,Video views and sound uses,false
