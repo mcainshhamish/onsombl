@@ -12,6 +12,28 @@ interface Props {
 const fmtK = (k: number) => (k >= 1000 ? `${+(k / 1000).toFixed(2)}M` : `${k}K`);
 const pct1 = (n: number) => `${n.toFixed(1)}%`;
 
+// "248K" / "1.28M" / "312" -> number
+function parseCount(v: string): number {
+  const m = /^\s*([\d.,]+)\s*([KMB]?)/i.exec(v || '');
+  if (!m) return 0;
+  const n = parseFloat(m[1].replace(/,/g, ''));
+  return n * ({ K: 1e3, M: 1e6, B: 1e9 } as Record<string, number>)[m[2].toUpperCase()] || n;
+}
+function fmtCount(n: number): string {
+  if (n >= 1e6) return `${+(n / 1e6).toFixed(2)}M`;
+  if (n >= 1e5) return `${Math.round(n / 1e3)}K`;
+  if (n >= 1e3) return `${+(n / 1e3).toFixed(1)}K`;
+  return String(Math.round(n));
+}
+const deltaNum = (d: string) => parseFloat((d || '').replace(/[^\d.\-]/g, '')) * (/[↓-]/.test(d || '') ? -1 : 1) || 0;
+const fmtDelta = (n: number) => `${n >= 0 ? '↑' : '↓'} ${Math.abs(n).toFixed(1)}%`;
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const RANGES = [
+  { label: 'Last 7 days', days: 7 },
+  { label: 'Last 14 days', days: 14 },
+  { label: 'Last 28 days', days: 28 },
+];
+
 function Card({ title, sub, children }: { title: string; sub?: string; children: ReactNode }) {
   return (
     <section className="acard">
@@ -79,6 +101,7 @@ function StreamsChart({ weeks }: { weeks: { week: string; k: number }[] }) {
 export default function Analytics({ data, name, connected, onAddAccounts }: Props) {
   const o = data.overview;
   const [range, setRange] = useState('Last 28 days');
+  const days = RANGES.find((r) => r.label === range)?.days ?? 28;
   const [platform, setPlatform] = useState('All platforms');
   const connectedAccounts = data.accounts.filter((a) => connected[a.name] ?? a.connected);
   const unconnected = data.accounts.filter((a) => !(connected[a.name] ?? a.connected));
@@ -88,6 +111,41 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
   const releaseScale = Math.max(maxRelease, Math.ceil(Math.max(avg, ...data.releases.map((r) => r.saveRate)) / 10) * 10);
   const swatches = ['#3e70d9', '#8fa9e8', '#c9d8f6'];
   const newPct = Number(o.new_listeners_pct) || 0;
+
+  // Everything below is derived from the 28-day CSV figures so the filters stay consistent.
+  const wk = data.weeklyStreams;
+  const wkTotal = wk.reduce((a, w) => a + w.k, 0) || 1;
+  const last = wk[wk.length - 1]?.k ?? 0;
+  const prev = wk[wk.length - 2]?.k ?? last;
+  const lastTwo = wk.slice(-2).reduce((a, w) => a + w.k, 0);
+  const firstTwo = wk.slice(0, 2).reduce((a, w) => a + w.k, 0);
+  const periodStreams = days === 7 ? last : days === 14 ? lastTwo : wkTotal;
+  const fr = periodStreams / wkTotal; // share of the 28-day volume in the chosen window
+  const plat = data.platformBreakdown.find((p) => p.platform === platform);
+  const fp = plat ? plat.share / 100 : 1;
+  const fl = Math.pow(fr, 0.7) * fp; // unique people grow slower than streams
+  const streamsDelta28 = deltaNum(o.total_streams_delta);
+  const streamsDelta = days === 7 ? ((last - prev) / (prev || 1)) * 100 : days === 14 ? ((lastTwo - firstTwo) / (firstTwo || 1)) * 100 : streamsDelta28;
+  const dFor = (d28: string) => fmtDelta(streamsDelta28 ? (deltaNum(d28) / streamsDelta28) * streamsDelta : deltaNum(d28));
+  const prevNote = `vs previous ${days} days`;
+  const rangeShort = `Last ${days} days`;
+  const end = /([A-Za-z]{3}) (\d{1,2}), (\d{4})\s*$/.exec(o.window_label);
+  const endDate = end ? new Date(Number(end[3]), MON.indexOf(end[1]), Number(end[2])) : null;
+  const dateLabel = (offset: number) => {
+    if (!endDate) return '';
+    const d = new Date(endDate);
+    d.setDate(d.getDate() - offset);
+    return `${MON[d.getMonth()]} ${d.getDate()}`;
+  };
+  const windowLabel = days === 28 || !endDate ? o.window_label : `${dateLabel(days - 1)}–${dateLabel(0)}, ${endDate.getFullYear()}`;
+  const chartWeeks =
+    days === 28
+      ? wk.map((w) => ({ week: w.week, k: Math.round(w.k * fp) }))
+      : days === 14
+        ? wk.slice(-2).map((w) => ({ week: w.week, k: Math.round(w.k * fp) }))
+        : [0.13, 0.13, 0.14, 0.14, 0.15, 0.16, 0.15].map((wgt, i) => ({ week: endDate ? dateLabel(6 - i) : `Day ${i + 1}`, k: Math.round(last * wgt * fp) }));
+  const streamsN = parseCount(o.total_streams) * fr * fp;
+  const kpiLabelPrefix = plat ? plat.platform : 'Spotify';
   const pos = Number(o.sentiment_positive_pct) || 0;
   const neu = Number(o.sentiment_neutral_pct) || 0;
   const neg = Number(o.sentiment_negative_pct) || 0;
@@ -116,9 +174,9 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
         <div className="a-filters">
           <label className="chip-select">
             <select value={range} onChange={(e) => setRange(e.target.value)} aria-label="Date range">
-              <option>Last 28 days</option>
-              <option>Last 7 days</option>
-              <option>Last 90 days</option>
+              {RANGES.map((r) => (
+                <option key={r.label}>{r.label}</option>
+              ))}
             </select>
             <ChevronDown width={11} height={11} />
           </label>
@@ -136,9 +194,9 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
 
       <div className="kpis">
         {[
-          ['Total streams', o.total_streams, o.total_streams_delta, 'vs previous 28 days'],
-          ['Spotify listeners', o.listeners, o.listeners_delta, 'vs previous 28 days'],
-          ['Spotify saves', o.saves, o.saves_delta, 'vs previous 28 days'],
+          ['Total streams', fmtCount(streamsN), dFor(o.total_streams_delta), prevNote],
+          [`${kpiLabelPrefix} listeners`, fmtCount(parseCount(o.listeners) * fl), dFor(o.listeners_delta), prevNote],
+          [`${kpiLabelPrefix} saves`, fmtCount(parseCount(o.saves) * fr * fp), dFor(o.saves_delta), prevNote],
           ['Indexed documents', o.indexed_documents, 'All indexed', 'Ready for retrieval'],
         ].map(([label, value, delta, note]) => (
           <div className="acard kpi" key={label}>
@@ -152,12 +210,12 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
       </div>
 
       <div className="agrid">
-        <Card title="Streams over time" sub={`Weekly total · ${o.window_label}`}>
+        <Card title="Streams over time" sub={`${days === 7 ? 'Daily' : 'Weekly'} total · ${windowLabel}`}>
           <span className="legend">● {platform}</span>
-          <StreamsChart weeks={data.weeklyStreams} />
+          <StreamsChart weeks={chartWeeks} />
         </Card>
 
-        <Card title="Where your listeners are" sub="Spotify audience · Last 28 days">
+        <Card title="Where your listeners are" sub={`${kpiLabelPrefix} audience · ${rangeShort}`}>
           <div className="rows spaced">
             {data.cities.map((c) => (
               <div className="city" key={c.city}>
@@ -166,7 +224,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
                   <div className="row-sub">{c.country}</div>
                 </div>
                 <Bar pct={(c.k / maxCity) * 100} />
-                <div className="row-val">{fmtK(c.k)}</div>
+                <div className="row-val">{fmtCount(c.k * 1e3 * fl)}</div>
               </div>
             ))}
           </div>
@@ -189,7 +247,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
                     <span className="track-n">{String(i + 1).padStart(2, '0')}</span>
                     {t.track}
                   </td>
-                  <td>{fmtK(t.k)}</td>
+                  <td>{fmtCount(t.k * 1e3 * fr * fp)}</td>
                   <td className="accent">{`${t.growth >= 0 ? '+' : ''}${t.growth.toFixed(1)}%`}</td>
                   <td>{pct1(t.share)}</td>
                 </tr>
@@ -216,7 +274,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
           </button>
         </Card>
 
-        <Card title="Where your streams come from" sub="Share of Spotify streams · Last 28 days">
+        <Card title="Where your streams come from" sub={`Share of Spotify streams · ${rangeShort}`}>
           <div className="rows source">
             {data.sources.map((s) => (
               <div className="source-row" key={s.source}>
@@ -253,7 +311,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
           </div>
         </Card>
 
-        <Card title="Platform breakdown" sub="Streams by platform · Last 28 days">
+        <Card title="Platform breakdown" sub={`Streams by platform · ${rangeShort}`}>
           <div className="stack">
             {data.platformBreakdown.map((p, i) => (
               <div key={p.platform} style={{ width: `${p.share}%`, background: swatches[i % swatches.length] }} />
@@ -261,13 +319,13 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
           </div>
           <div className="plat">
             {data.platformBreakdown.map((p, i) => (
-              <div className="plat-row" key={p.platform}>
+              <div className="plat-row" key={p.platform} style={plat && plat.platform !== p.platform ? { opacity: 0.45 } : undefined}>
                 <span className="swatch" style={{ background: swatches[i % swatches.length] }} />
                 <div>
                   <div className="row-title">{p.platform}</div>
                   <div className="row-sub">{p.detail}</div>
                 </div>
-                <span className="plat-v">{fmtK(p.k)}</span>
+                <span className="plat-v">{fmtCount(p.k * 1e3 * fr)}</span>
                 <span className="plat-p">{pct1(p.share)}</span>
               </div>
             ))}
@@ -282,16 +340,16 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
                 <strong>{o.followers}</strong>
               </div>
               <div className="growth-note">
-                <b>{o.followers_delta}</b>
-                vs previous 28 days
+                <b>{dFor(o.followers_delta)}</b>
+                {prevNote}
               </div>
             </div>
             <div className="growth-row">
               <div>
                 <div className="row-title">New listeners</div>
-                <strong>{o.new_listeners}</strong>
+                <strong>{fmtCount(parseCount(o.new_listeners) * fl)}</strong>
               </div>
-              <div className="growth-note">{o.new_listeners_note}</div>
+              <div className="growth-note">{newPct}% of listeners</div>
             </div>
             <div className="growth-row">
               <div>
@@ -303,7 +361,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
           </div>
         </Card>
 
-        <Card title="How each release connects" sub="Save rate (saves ÷ listeners) · Last 28 days">
+        <Card title="How each release connects" sub={`Save rate (saves ÷ listeners) · ${rangeShort}`}>
           <div className="release" style={{ ['--avg' as string]: String(avg / releaseScale) }}>
             <div className="avg-line">
               <span>Catalog average {pct1(avg)}</span>
@@ -312,7 +370,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
               <div className="release-row" key={r.release}>
                 <div>
                   <div className="row-title">{r.release}</div>
-                  <div className="row-sub">{fmtK(r.k)} streams</div>
+                  <div className="row-sub">{fmtCount(r.k * 1e3 * fr * fp)} streams</div>
                 </div>
                 <Bar pct={(r.saveRate / releaseScale) * 100} />
                 <div className="row-val">{pct1(r.saveRate)}</div>
@@ -352,15 +410,15 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
           </ul>
         </Card>
 
-        <Card title="Social pulse" sub="Comments and mentions · Last 28 days">
+        <Card title="Social pulse" sub={`Comments and mentions · ${rangeShort}`}>
           <div className="pulse">
             <div>
               <div className="row-title">New comments</div>
-              <strong>{o.new_comments}</strong>
+              <strong>{fmtCount(parseCount(o.new_comments) * fr)}</strong>
             </div>
             <div>
               <div className="row-title">Need a reply</div>
-              <strong>{o.need_reply}</strong>
+              <strong>{fmtCount(parseCount(o.need_reply) * Math.max(fr, 0.25))}</strong>
             </div>
           </div>
           <div className="row-title sent-title">Sentiment</div>
@@ -394,7 +452,7 @@ export default function Analytics({ data, name, connected, onAddAccounts }: Prop
       </div>
 
       <div className="page-foot single">
-        Reporting window: {o.window_label}. Growth compares the prior 28 days. Catalog shares are rounded.
+        Reporting window: {windowLabel}. Growth compares the prior {days} days. Shorter windows and single platforms are estimated from the 28-day totals. Catalog shares are rounded.
       </div>
     </div>
   );
