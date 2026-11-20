@@ -33,13 +33,6 @@ export const PERSONAS: Persona[] = [
   { id: 'owls', name: 'The Night Owls', kind: 'Band workspace', possessive: 'The Night Owls’ workspace' },
 ];
 
-export const RECENT_CONVERSATIONS = [
-  'What is my best-performing track?',
-  'Where are my listeners?',
-  'Compare my last two releases',
-  'Which platform should I focus on?',
-];
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function formatDue(iso: string): string {

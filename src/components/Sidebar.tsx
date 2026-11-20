@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { PERSONAS, RECENT_CONVERSATIONS, type Persona } from '../data';
+import { PERSONAS, type Persona } from '../data';
 import { AnalyticsIcon, ChevronDown, ConversationIcon, GuideIcon, ProjectIcon, SettingsIcon } from './Icons';
 import avatarMayaCard from '../assets/avatar-maya-card.png';
 import avatarMaya from '../assets/avatar-maya.png';
@@ -19,7 +19,7 @@ interface Props {
   onPersona: (id: string) => void;
   onAddAccounts: () => void;
   onAsk: (question: string) => void;
-  recents: string[];
+  suggestions: string[];
   platformCount: number;
   documentCount: string;
   lastSynced: string;
@@ -32,7 +32,7 @@ const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
   { id: 'guide', label: 'Guide', Icon: GuideIcon },
 ];
 
-export default function Sidebar({ open, onClose, view, onView, persona, onPersona, onAddAccounts, onAsk, recents, platformCount, documentCount, lastSynced }: Props) {
+export default function Sidebar({ open, onClose, view, onView, persona, onPersona, onAddAccounts, onAsk, suggestions, platformCount, documentCount, lastSynced }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -49,8 +49,6 @@ export default function Sidebar({ open, onClose, view, onView, persona, onPerson
     onPersona(id);
     setMenuOpen(false);
   };
-
-  const list = [...recents, ...RECENT_CONVERSATIONS.filter((d) => !recents.includes(d))].slice(0, 8);
 
   return (
     <aside className={`sidebar sb${open ? ' open' : ''}`} aria-label="Workspace navigation">
@@ -112,9 +110,9 @@ export default function Sidebar({ open, onClose, view, onView, persona, onPerson
         ))}
       </nav>
 
-      <div className="sb-label sb-recent-label">RECENT CONVERSATIONS</div>
+      <div className="sb-label sb-recent-label">SUGGESTED QUESTIONS</div>
       <div className="sb-recents">
-        {list.map((c) => (
+        {suggestions.map((c) => (
           <button key={c} title={c} className="sb-link" onClick={() => {
               onAsk(c);
               onClose();

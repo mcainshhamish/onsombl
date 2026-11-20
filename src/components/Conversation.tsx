@@ -80,7 +80,6 @@ interface Props {
   msgs: Msg[];
   onMsgs: (m: Msg[]) => void;
   autoAsk?: { q: string; n: number } | null;
-  onAsked?: (q: string) => void;
   getTasks: () => { id: string; title: string; status: string; due: string }[];
   onActions: (actions: ChatAction[]) => void;
   onOpenBoard: () => void;
@@ -90,7 +89,7 @@ export type ChatAction =
   | { type: 'add_task'; title: string; category: string; note: string; due: string; priority: string }
   | { type: 'update_task_status'; id: string; status: string };
 
-export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk, onAsked, getTasks, onActions, onOpenBoard }: Props) {
+export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk, getTasks, onActions, onOpenBoard }: Props) {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmNew, setConfirmNew] = useState(false);
@@ -113,7 +112,6 @@ export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk, on
   async function ask(text: string) {
     const q = text.trim();
     if (!q || busy) return;
-    onAsked?.(q);
     const next: Msg[] = [...msgs, { role: 'user', content: q, at: Date.now() }];
     onMsgs(next);
     setInput('');
@@ -205,7 +203,7 @@ export default function Conversation({ artistId, name, msgs, onMsgs, autoAsk, on
 
       {confirmNew && (
         <Modal title="Clear this chat?" onClose={() => setConfirmNew(false)}>
-          <p className="modal-text">This clears the conversation on screen. Your recent questions stay in the sidebar.</p>
+          <p className="modal-text">This clears the conversation on screen.</p>
           <div className="modal-actions">
             <button className="btn-soft light" onClick={() => setConfirmNew(false)}>
               Cancel

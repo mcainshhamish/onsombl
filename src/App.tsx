@@ -18,35 +18,12 @@ export default function App() {
   const [personaId, setPersonaId] = useState('maya');
   const [accountsOpen, setAccountsOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
-  const [recents, setRecents] = useState<string[]>([]);
   const [chats, setChats] = useState<Record<string, Msg[]>>({});
   const [access, setAccess] = useState(false);
   const [autoAsk, setAutoAsk] = useState<{ q: string; n: number } | null>(null);
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [load, setLoad] = useState<Load>({ status: 'loading' });
 
-  const recentKey = `ensemble.recent.v1.${personaId}`;
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(recentKey);
-      const list = raw ? JSON.parse(raw) : [];
-      setRecents(Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string').slice(0, 20) : []);
-    } catch {
-      setRecents([]);
-    }
-  }, [recentKey]);
-
-  function addRecent(q: string) {
-    setRecents((prev) => {
-      const next = [q, ...prev.filter((x) => x !== q)].slice(0, 20);
-      try {
-        localStorage.setItem(recentKey, JSON.stringify(next));
-      } catch {
-        /* storage unavailable: keep in memory only */
-      }
-      return next;
-    });
-  }
   const persona = PERSONAS.find((p) => p.id === personaId) ?? PERSONAS[0];
 
   const hasChat = Object.values(chats).some((m) => m.length > 0);
@@ -116,6 +93,17 @@ export default function App() {
 
   const open = () => setAccountsOpen(true);
   const data = load.status === 'ready' ? load.data : null;
+  const suggestions: string[] = data
+    ? [
+        `Why is ${[...data.tracks].sort((x, y) => y.growth - x.growth)[0].track} growing fastest?`,
+        'Which city should I target first?',
+        `How can I lift saves on ${[...data.releases].sort((x, y) => x.saveRate - y.saveRate)[0].release}?`,
+        'How are my fans reacting to my latest release?',
+        'Which platform should I focus on?',
+        `Which age group should my next campaign target?`,
+        'Add a task to pitch playlist curators',
+      ]
+    : [];
   const platformCount = data ? data.accounts.filter((a) => connected[a.name] ?? a.connected).length : 0;
 
   return (
@@ -125,7 +113,7 @@ export default function App() {
         open={navOpen}
         onClose={() => setNavOpen(false)}
         onView={setView}
-        recents={recents}
+        suggestions={suggestions}
         onAsk={ask}
         persona={persona}
         onPersona={setPersonaId}
@@ -166,7 +154,6 @@ export default function App() {
             msgs={chats[persona.id] ?? []}
             onMsgs={(m) => setChats((c) => ({ ...c, [persona.id]: m }))}
             autoAsk={autoAsk}
-            onAsked={addRecent}
             getTasks={readTasks}
             onActions={applyActions}
             onOpenBoard={() => setView('projects')}
