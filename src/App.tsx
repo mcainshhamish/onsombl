@@ -118,6 +118,7 @@ export default function App() {
         persona={persona}
         onPersona={setPersonaId}
         onAddAccounts={open}
+        onSignup={() => setAccess(true)}
         platformCount={platformCount}
         documentCount={data?.overview.indexed_documents ?? '–'}
         lastSynced={data?.overview.last_synced.replace(/^Synced /, '') ?? ''}

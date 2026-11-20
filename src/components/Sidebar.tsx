@@ -18,6 +18,7 @@ interface Props {
   persona: Persona;
   onPersona: (id: string) => void;
   onAddAccounts: () => void;
+  onSignup: () => void;
   onAsk: (question: string) => void;
   suggestions: string[];
   platformCount: number;
@@ -32,7 +33,7 @@ const NAV: { id: View; label: string; Icon: typeof ConversationIcon }[] = [
   { id: 'guide', label: 'Guide', Icon: GuideIcon },
 ];
 
-export default function Sidebar({ open, onClose, view, onView, persona, onPersona, onAddAccounts, onAsk, suggestions, platformCount, documentCount, lastSynced }: Props) {
+export default function Sidebar({ open, onClose, view, onView, persona, onPersona, onAddAccounts, onSignup, onAsk, suggestions, platformCount, documentCount, lastSynced }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +58,7 @@ export default function Sidebar({ open, onClose, view, onView, persona, onPerson
         <div className="sb-tagline">MUSIC INTELLIGENCE</div>
       </div>
 
-      <div className="sb-label">SWITCH ARTIST · TRY A PERSONA</div>
+      <div className="sb-label">DEMO ARTISTS</div>
       <div className="sb-card" ref={menuRef}>
         <img className="sb-card-avatar" src={avatarMayaCard} alt="" />
         <div className="sb-card-text">
@@ -92,10 +93,10 @@ export default function Sidebar({ open, onClose, view, onView, persona, onPerson
             <img src={AVATARS[p.id]} alt="" />
           </button>
         ))}
-        <button className="persona-add" onClick={() => setMenuOpen(true)} aria-label="Try a persona">
-          +
+        <button className="persona-cta" onClick={onSignup}>
+          <span className="persona-add">+</span>
+          <span className="persona-hint">Add your account</span>
         </button>
-        <span className="persona-hint">Try a persona</span>
       </div>
 
       <nav className="sb-nav">

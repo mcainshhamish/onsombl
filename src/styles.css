@@ -1848,3 +1848,10 @@ button {
   .toolbar-right { flex-wrap: wrap; gap: 8px; }
   .toolbar-right .select .chip-btn, .toolbar-right .select:nth-child(1) .chip-btn, .toolbar-right .select:nth-child(2) .chip-btn { width: auto; }
 }
+.persona-cta { display: flex; align-items: center; gap: 0; margin-left: 2px; padding: 0 6px 0 0; border-radius: 16px; }
+.persona-cta:hover .persona-hint { color: var(--accent-dark); text-decoration: underline; }
+.persona-cta .persona-hint { margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--accent-dark); }
+.persona-cta .persona-add { margin-left: 0; border-color: var(--accent); color: var(--accent); }
+@media (max-height: 700px) { .persona-hint { display: inline; } }
+.persona-cta .persona-hint { white-space: nowrap; font-size: 11px; margin-left: 6px; }
+.persona-cta { padding-right: 0; }
